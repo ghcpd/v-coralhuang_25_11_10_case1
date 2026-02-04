@@ -1,0 +1,71 @@
+You are a backend engineer tasked with auditing and fixing search-index integration in a Flask + SQLAlchemy application that uses a SearchableMixin to keep a search index in sync with database rows.
+
+Current issue:
+
+The SQLAlchemy event listeners (e.g., before_commit, after_commit) were only registered for a single model (e.g., Post). When other models (e.g., Comment) later adopted SearchableMixin, their changes failed to propagate to the index due to lack of event binding.
+
+Problems to address:
+
+Event listeners are bound to a specific model (e.g., Post) instead of being generalized.
+
+Developers must manually register each model using SearchableMixin, which is error-prone.
+
+SearchableMixin lacks a centralized event registration API.
+
+Tests do not verify multi-model behavior with the mixin.
+
+Tasks:
+
+Refactor the mixin and event binding:
+
+Ensure that SQLAlchemy session-level events (e.g., event.listen(db.session.__class__, ...)) detect instances of all SearchableMixin subclasses via isinstance(obj, SearchableMixin).
+
+Or provide a static/class method such as SearchableMixin.register_listeners(db) to be called once during initialization, applying to all inheriting models.
+
+Do not hardcode model names.
+
+Testing:
+
+Verify Post updates are indexed.
+
+Verify Comment updates are indexed after inheriting the mixin.
+
+Confirm no errors if a non-searchable model is present in the session.
+
+Validate that the index remains consistent across models.
+
+Deliverables:
+
+models.py: Updated mixin with centralized and reusable registration.
+
+test_search_events.py: Tests validating both Post and Comment are indexed.
+
+README.md: Explanation of why model-specific event binding is fragile and how to adopt the new registration.
+
+output.json: Summary of identified issues, fixes, and test results.
+
+run_test.sh: One-click script to install dependencies and run tests.
+
+Environment Replication (Multi-platform):
+
+Provide the following scripts for setup and test execution:
+
+requirements.txt – Dependencies.
+
+Dockerfile – Containerized build.
+
+setup.sh – Linux/macOS install/setup script.
+
+run_test.sh – Test runner for Linux/macOS.
+
+run_test.bat – Test runner for Windows.
+
+Implement auto-detection logic that selects the appropriate test runner based on environment (Windows / Linux / Docker).
+
+Log all test output to logs/test_run.log.
+
+Execution Requirements:
+
+If tests cannot be executed in the current environment, explicitly state that in output.json. Do not fabricate pass/fail results.
+
+Ensure return types are consistent across all search outcomes (e.g., (query, total) or (list, total)), and document contract changes in output.json if any.
